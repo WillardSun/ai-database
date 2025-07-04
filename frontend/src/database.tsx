@@ -1,7 +1,7 @@
 import './App.css'
 import { useState } from 'react'
 import { Users } from './users'
-import { PhoneIcon, AcademicCapIcon, ChevronDoubleDownIcon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/16/solid'
+import { ChevronDoubleDownIcon, MagnifyingGlassIcon, XMarkIcon, UserIcon, BriefcaseIcon} from '@heroicons/react/16/solid'
 
 function Database() {
     const [expandedUsersExp, setExpandedUsersExp] = useState<Record<string, boolean>>({})
@@ -9,25 +9,25 @@ function Database() {
     const [filters, setFilters] = useState({
         company: '',
         responsibilities: '',
-        skills: ''
+        skills: '',
     })
     const [showFilters, setShowFilters] = useState(false)
 
     const filteredUsers = Users.filter((user: any) => {
         const companyMatch = filters.company === '' || 
             user.work_experience.some((exp: any) => 
-                exp.company.toLowerCase().includes(filters.company.toLowerCase())
+                exp.company_name.toLowerCase().includes(filters.company.toLowerCase())
             )
         
         const responsibilitiesMatch = filters.responsibilities === '' || 
             user.work_experience.some((exp: any) => 
-                exp.responsibilities.some((resp: any) => 
+                exp.skills.some((resp: any) => 
                     resp.toLowerCase().includes(filters.responsibilities.toLowerCase())
                 )
             )
         
         const skillsMatch = filters.skills === '' || 
-            user.skills.some((skill: any) => 
+            user.others.skills.some((skill: any) => 
                 skill.toLowerCase().includes(filters.skills.toLowerCase())
             )
         
@@ -102,14 +102,155 @@ function Database() {
             skills: ''
         })
     }
+
+    const educationCard = (education: any) => (
+        <div className="flex flex-col p-4 mb-4 border-solid border-l-neutral border-l-3 bg-secondary ">
+            <div className="flex w-full justify-between">
+                <p className="text-lg font-semibold pb-4">{education.school_name}</p>
+                {education.still_active == 1 ? 
+                    <p className="text-sm">{education.start_time_year}.{education.start_time_month} - 现在 </p> :
+                    <p className="text-sm">{education.start_time_year}.{education.start_time_month} - {education.end_time_year}.{education.end_time_month}</p>
+                }
+            </div>
+            <div className="flex w-full justify-between pr-8">
+                <p className="text-sm">学位: {education.degree} </p>
+                <p className="text-sm">专业: {education.major}</p>
+                <p className="text-sm">地点: {education.location}</p>
+                {education.abroad == 1 && <p className="text-sm">海外国家: {education.abroad_country}</p>}
+            </div>
+        </div>
+    );
+    
+    const experienceCard = (experience: any) => (
+        <div className="flex flex-col p-4 mb-4 border-solid border-l-neutral border-l-3 bg-secondary ">
+            <div className="flex w-full justify-between">
+                <p className="text-lg font-semibold pb-4">{experience.company_name}</p>
+                {experience.still_active == 1 ? 
+                    <p className="text-sm">{experience.start_time_year}.{experience.start_time_month} - 现在 </p> :
+                    <p className="text-sm">{experience.start_time_year}.{experience.start_time_month} - {experience.end_time_year}.{experience.end_time_month}</p>
+                }
+            </div>
+            <div className="flex w-full justify-between pr-8">
+                <p className="text-sm">职位名称: {experience.job_title}</p>
+                <p className="text-sm">公司行业: {experience.industry}</p>
+                <p className="text-sm">公司规模: {experience.company_size}</p>
+                <p className="text-sm">工作职能: {experience.job_function}</p>
+            </div>
+            <p className="w-full p-4 bg-accent mt-4 text-sm"> {experience.description}</p>
+            <ul className='list-disc space-y-1 mt-2'>
+                {experience.skills.map((skill: any, i: number) => (
+                    <div key={i} className="tooltip tooltip-top" data-tip={skill}>
+                        <div className="badge badge-ghost whitespace-nowrap text-ellipsis overflow-hidden m-1 max-w-[10rem]">
+                            <span className="inline-block min-w-0 truncate"> {skill} </span>
+                        </div>
+                    </div>
+                ))}
+            </ul>
+        </div>
+    );
+
+    const userCards = <div className="flex flex-col bg-secondary">
+        {filteredUsers.map((user: any) => (
+            <div key={user._id} className="flex flex-col bg-secondary m-4">
+                <div className="w-full max-w-4xl bg-gradient-to-r from-indigo-400 to-purple-500 rounded-tl-xl rounded-tr-xl rounded-none p-6 flex flex-col md:flex-row text-primary-content">
+                    <div className="flex items-start space-x-4 w-full">
+                        <img
+                        src={user.avatar || "https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"}
+                        alt="User"
+                        className="w-20 h-20 rounded-full object-cover border-4 border-white"
+                        />
+                        <div className="flex flex-col space-y-1">
+                            <div className="flex items-center space-x-2 text-xl font-semibold">
+                                <UserIcon className="w-5 h-5" />
+                                <span>{user.basic_info.name}</span>
+                            </div>
+                            <div className="text-sm space-x-2">
+                                <span>{user.basic_info.age} 岁</span>
+                                <span>{user.basic_info.gender}</span>
+                                <a href={`mailto:${user.contact_info.email}`} className="text-blue-200 hover:underline"> {user.contact_info.email} </a>
+                            </div>
+                            <div className="flex items-center text-sm space-x-1 mt-1">
+                                <BriefcaseIcon className="w-4 h-4" />
+                                <span>{user.basic_info.num_work_experience} 年工作经验</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+
+                <div className="flex flex-col w-full max-w-4xl bg-accent p-6 border-none">
+                    <h2 className="text-xl text-info font-bold pb-3 mt-3 mb-3 border-b-gray-400 border-b-2"> 基本信息 </h2>
+                    <div className="grid grid-cols-3 gap-y-4 gap-x-8">
+                        <p> 姓名: {user.basic_info.name} </p>
+                        <p> 年齡: {user.basic_info.age} </p>
+                        <p> 性别: {user.basic_info.gender} </p>
+                        <p> 生日: {user.basic_info.date_of_birth} </p>
+                        <p> 邮箱: <a href={`mailto:${user.contact_info.email}`} className="text-blue-400 hover:underline"> {user.contact_info.email} </a> </p>
+                        <p> 专业: {user.basic_info.major} </p>
+                        <p> 毕业院校: {user.basic_info.school_name} </p>
+                        <p> 工作年限: {user.basic_info.num_work_experience} 年 </p>
+                        <p> 当前公司：{user.basic_info.current_company} </p>
+                        <p> 求职状态：{user.basic_info.current_status} </p>
+                        <p> 专业级别：{user.basic_info.professional_level} </p>
+                        <p> 详细地址：{user.basic_info.detailed_location} </p>
+                        <p> 期望工作地点: {user.basic_info.expect_location} </p>
+                        <p> 开始工作年份：{user.basic_info.work_start_year} </p>
+                        <p> 薪金要求: {user.basic_info.desired_salary} </p>
+                    </div>
+                </div>
+
+                <div className="flex flex-col w-full max-w-4xl bg-accent p-6 border-none">
+                    <h2 className="text-xl text-info font-bold pb-3 mt-3 mb-3 border-b-gray-400 border-b-2"> 教育背景 </h2>
+                    {user.education_experience.map((education: any, index: number) => (
+                        <div key={index}> {educationCard(education)} </div>
+                    ))}
+                </div>
+
+                <div className="flex flex-col">
+                    <div className="card flex flex-col w-full bg-accent p-4 rounded-bl-xl rounded-br-xl rounded-none mb-0">
+                        <h2 className="text-xl text-info font-bold mt-3 mb-3 pb-3 border-gray-400 border-b-2"> 經驗 </h2>
+                        {user.work_experience.slice(0, 1).map((experience: any, index: number) => (
+                            <div key={index}> {experienceCard(experience)} </div>
+                        ))}
+                        {user.work_experience.length > 1 && (
+                            <>
+                                <div className={`overflow-hidden transition-all duration-300 ${expandedUsersExp[user._id] ? 'max-h-[2000px]' : 'max-h-0'}`}>
+                                    {user.work_experience.slice(1).map((exp: any, index: number) => (
+                                    <div key={index}>{experienceCard(exp)}</div>
+                                    ))}
+                                </div>
+
+                                <button
+                                    onClick={() => toggleExpandExp(user._id)}
+                                    className="btn btn-ghost btn-sm self-start mt-2 mx-auto"
+                                >
+                                    {expandedUsersExp[user._id] ? (
+                                        <>
+                                            <span>顯示更少</span>
+                                            <ChevronDoubleDownIcon className="w-4 h-4 ml-1 transform rotate-180" />
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span>顯示更多 ({user.work_experience.length - 1})</span>
+                                            <ChevronDoubleDownIcon className="w-4 h-4 ml-1" />
+                                        </>
+                                    )}
+                                </button>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </div>
+        ))}
+    </div>
+
     
     return (
         <div className="container flex flex-row">
-
-
-            <div className="bg-base-200 p-4 rounded-lg shadow-md mb-4">
+            <div className="bg-primary p-4  flex-none">
                 <div className="flex justify-between items-center mb-2">
-                    <h2 className="text-xl font-bold">篩選條件</h2>
+                    <h2 className="text-xl text-info font-bold mr-2">篩選條件</h2>
                     <div className="flex space-x-2">
                         <button 
                             onClick={() => setShowFilters(!showFilters)}
@@ -188,133 +329,8 @@ function Database() {
                     找到 {filteredUsers.length} 位符合條件的使用者
                 </div>
             </div>
-
-
-            <div className="flex flex-col ">
-                {filteredUsers.map((user: any) => (
-                    <div key={user._id} className="flex flex-row bg-secondary m-4">
-                        <div className="card bg-accent w-96 mt-4 m-4 mr-0">
-                            <figure className="px-10 pt-10">
-                                <img
-                                src="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
-                                alt="User"
-                                className="rounded-xl" />
-                            </figure>
-                            <div className="card-body items-center text-center">
-                                <h2 className="card-title">{user.name}</h2>
-                                <div className="flex flex-row">
-                                    <PhoneIcon className="size-6 mr-3"> </PhoneIcon>
-                                    <p>{user.contact}</p>
-                                </div>
-                                <div className="flex flex-row">
-                                    <AcademicCapIcon className="size-6 mr-3"> </AcademicCapIcon>
-                                    <p>{user.education[0].field} ({user.education[0].degree}) - {user.education[0].school}</p>
-                                </div>
-                                <div className="flex flex-wrap flex-row justify-center w-full">
-                                    {user.skills.map((skill: any, si: number) => (
-                                        <div key={si} className="tooltip tooltip-top" data-tip={skill}>
-                                            <div className="badge badge-ghost whitespace-nowrap text-ellipsis overflow-hidden m-1 max-w-[10rem]">
-                                                <span className="inline-block min-w-0 truncate"> {skill} </span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="flex flex-col">
-                            <div className="card flex flex-col w-200 bg-accent p-4 m-4 ml-2 mb-0">
-                                <p className="text-2xl font-bold mt-3"> 經驗 </p>
-                                {user.work_experience.slice(0, 1).map((experience: any, index: number) => (
-                                <div key={index} className="flex flex-col pt-4 pb-4 border-b-gray-400 border-solid border-b-1">
-                                    <p className="text-lg font-semibold">{experience.position}</p>
-                                    <p className="text-sm">{experience.company}</p>
-                                    <p className="text-sm">{formatDate(experience.start_date)} - {formatDate(experience.end_date)} • {calculateDuration(experience.start_date, experience.end_date)}</p>
-                                    <ul className='list-disc pl-5 space-y-1 mt-2'>
-                                        {experience.responsibilities.map((responsibility: any, i: number) => (
-                                            <li key={i} className="text-sm">{responsibility}</li>
-                                        ))}
-                                    </ul>
-                                </div>
-                                ))}
-                                {user.work_experience.length > 1 && (
-                                    <>
-                                        <div className={`overflow-hidden transition-all duration-300 ${expandedUsersExp[user._id] ? 'max-h-[2000px]' : 'max-h-0'}`}>
-                                            {user.work_experience.slice(1).map((experience: any, index: number) => (
-                                                <div key={index + 1} className="flex flex-col pt-4 pb-4 border-b-gray-400 border-solid border-b">
-                                                    <p className="text-lg font-semibold">{experience.position}</p>
-                                                    <p className="text-sm">{experience.company}</p>
-                                                    <p className="text-sm">{formatDate(experience.start_date)} - {formatDate(experience.end_date)} • {calculateDuration(experience.start_date, experience.end_date)}</p>
-                                                    <ul className='list-disc pl-5 space-y-1 mt-2'>
-                                                        {experience.responsibilities.map((responsibility: any, i: number) => (
-                                                            <li key={i} className="text-sm">{responsibility}</li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        
-                                        <button 
-                                            onClick={() => toggleExpandExp(user._id)}
-                                            className="btn btn-ghost btn-sm self-start mt-2 mx-auto"
-                                        >
-                                            {expandedUsersExp[user._id] ? (
-                                                <>
-                                                    <span>顯示更少</span>
-                                                    <ChevronDoubleDownIcon className="w-4 h-4 ml-1 transform rotate-180" />
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <span>顯示更多 ({user.work_experience.length - 1})</span>
-                                                    <ChevronDoubleDownIcon className="w-4 h-4 ml-1" />
-                                                </>
-                                            )}
-                                        </button>
-                                    </>
-                                )}
-                            </div>
-                            <div className="card flex flex-col w-200 bg-accent p-4 m-4 ml-2 mt-2">
-                                <p className="text-2xl font-bold mt-3"> 項目 </p>
-                                {user.projects.slice(0, 1).map((project: any, index: number) => (
-                                <div key={index} className="flex flex-col pt-4 pb-4 border-b-gray-400 border-solid border-b-1">
-                                    <p className="text-lg font-semibold">{project.responsibility}</p>
-                                    <p className="text-sm">{project.name}</p>
-                                    <p className="text-sm">{project.technologies.join(" • ")}</p>
-                                </div>
-                                ))}
-                                {user.projects.length > 1 && (
-                                    <>
-                                        <div className={`overflow-hidden transition-all duration-300 ${expandedUsersProj[user._id] ? 'max-h-[2000px]' : 'max-h-0'}`}>
-                                            {user.projects.slice(1).map((project: any, index: number) => (
-                                                <div key={index} className="flex flex-col pt-4 pb-4 border-b-gray-400 border-solid border-b-1">
-                                                    <p className="text-lg font-semibold">{project.responsibility}</p>
-                                                    <p className="text-sm">{project.name}</p>
-                                                    <p className="text-sm">{project.technologies.join(" • ")}</p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        
-                                        <button 
-                                            onClick={() => toggleExpandProj(user._id)}
-                                            className="btn btn-ghost btn-sm self-start mt-2 mx-auto"
-                                        >
-                                            {expandedUsersProj[user._id] ? (
-                                                <>
-                                                    <span>顯示更少</span>
-                                                    <ChevronDoubleDownIcon className="w-4 h-4 ml-1 transform rotate-180" />
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <span>顯示更多 ({user.projects.length - 1})</span>
-                                                    <ChevronDoubleDownIcon className="w-4 h-4 ml-1" />
-                                                </>
-                                            )}
-                                        </button>
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                ))}
+            <div className="flex-1 bg-secondary min-h-screen">
+                {userCards}
             </div>
         </div>
     )

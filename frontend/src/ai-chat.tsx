@@ -27,15 +27,21 @@ function AiChat() {
                 ) : (
                     <div> message entered </div>
                 )}
-                <textarea 
-                className= "field-sizing-content resize-none w-full min-h-29 max-h-80 bg-secondary rounded-3xl p-4 text-primarycontent placeholder:text-secondary-content outline-0" 
-                placeholder="給AI發送消息" 
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyDown={handleKeyDown}
-                />
+                <ChatInput message={message} setMessage={setMessage} handleKeyDown={handleKeyDown}/>
             </div>
         </div>
+    )
+}
+
+const ChatInput = ({message, setMessage, handleKeyDown}: {message: any, setMessage: any, handleKeyDown: (e: any) => void}) => {
+    return (
+        <textarea 
+            className= "field-sizing-content resize-none w-full min-h-29 max-h-80 bg-secondary rounded-3xl p-4 text-primarycontent placeholder:text-secondary-content outline-0" 
+            placeholder="給AI發送消息" 
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
+        />
     )
 }
 

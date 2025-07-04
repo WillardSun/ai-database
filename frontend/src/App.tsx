@@ -13,7 +13,7 @@ function App() {
                 <Bars3Icon className="size-6" /> 
             </label>
         </div>
-        <div className="drawer flex flex-1">
+        <div className="drawer flex">
             <input id="drawer-1" type="checkbox" className="drawer-toggle" />
             <div className="drawer-content">
                 <Outlet />
