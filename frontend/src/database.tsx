@@ -10,6 +10,10 @@ function Database() {
         company: '',
         responsibilities: '',
         skills: '',
+        country: '',
+        city: '',
+        language: '',
+        salary: ''
     })
     const [showFilters, setShowFilters] = useState(false)
 
@@ -31,7 +35,37 @@ function Database() {
                 skill.toLowerCase().includes(filters.skills.toLowerCase())
             )
         
-        return companyMatch && responsibilitiesMatch && skillsMatch
+        const countryMatch = filters.country === '' || 
+            (user.basic_info.current_location_norm || '').toLowerCase().includes(filters.country.toLowerCase())
+        
+        const cityMatch = filters.city === '' || 
+            (user.basic_info.current_location || '').toLowerCase().includes(filters.city.toLowerCase())
+        
+        const languageMatch = filters.language === '' || 
+            user.others.languages.some((lang: any) => 
+                lang.language_name.toLowerCase().includes(filters.language.toLowerCase())
+            )
+
+        const salaryMatch = () => {
+            if (filters.salary === '') return true;
+            
+            const filterSalary = parseInt(filters.salary);
+            if (isNaN(filterSalary)) return true;
+
+            const salaryRange = user.basic_info.desired_salary;
+            if (!salaryRange || typeof salaryRange !== 'string') return false;
+
+            const [minStr, maxStr] = salaryRange.split('-');
+            const minSalary = parseInt(minStr);
+            const maxSalary = parseInt(maxStr);
+
+            if (isNaN(minSalary) || isNaN(maxSalary)) return false;
+
+            return filterSalary >= minSalary && filterSalary <= maxSalary;
+        };
+        
+        return companyMatch && responsibilitiesMatch && skillsMatch && countryMatch
+        && cityMatch && languageMatch && salaryMatch()
     })
 
     const formatDate = (dateString: string) => {
@@ -99,7 +133,11 @@ function Database() {
         setFilters({
             company: '',
             responsibilities: '',
-            skills: ''
+            skills: '',
+            country: '',
+            city: '',
+            language: '',
+            salary: ''
         })
     }
 
@@ -149,9 +187,114 @@ function Database() {
         </div>
     );
 
+    const skillsCard = (user: any) => (
+        <div className="flex flex-col p-4 mb-4 border-solid border-l-neutral border-l-3 bg-secondary">
+            <p className="text-lg font-semibold"> 技能 </p>
+            <div className = "flex mt-2">
+                <span className='mt-1'> 主要技能: </span>
+                <ul className='list-disc mt-0.5'>
+                    {user.others.skills.map((skill: any, i: number) => (
+                        <div key={i} className="tooltip tooltip-top" data-tip={skill}>
+                            <div className="badge badge-ghost whitespace-nowrap text-ellipsis overflow-hidden m-1 max-w-[10rem]">
+                                <span className="inline-block min-w-0 truncate"> {skill} </span>
+                            </div>
+                        </div>
+                    ))}
+                </ul>
+            </div>
+            <div className = "flex mt-2">
+                <span className='mt-1'> IT 技能: </span>
+                <ul className='list-disc mt-0.5'>
+                    {user.others.it_skills.map((skill: any, i: number) => (
+                        <div key={i} className="tooltip tooltip-top" data-tip={skill}>
+                            <div className="badge badge-ghost whitespace-nowrap text-ellipsis overflow-hidden m-1 max-w-[10rem]">
+                                <span className="inline-block min-w-0 truncate"> {skill} </span>
+                            </div>
+                        </div>
+                    ))}
+                </ul>
+            </div>  
+            <div className = "flex mt-2">
+                <span className='mt-1'> 商業技能: </span>
+                <ul className='list-disc mt-0.5'>
+                    {user.others.it_skills.map((skill: any, i: number) => (
+                        <div key={i} className="tooltip tooltip-top" data-tip={skill}>
+                            <div className="badge badge-ghost whitespace-nowrap text-ellipsis overflow-hidden m-1 max-w-[10rem]">
+                                <span className="inline-block min-w-0 truncate"> {skill} </span>
+                            </div>
+                        </div>
+                    ))}
+                </ul>
+            </div>  
+        </div>
+    );
+
+    const languageCard = (user: any) => (
+        <div className="flex flex-col p-4 mb-4 border-solid border-l-neutral border-l-3 bg-secondary">
+            <p className="text-lg font-semibold mb-2"> 語言 </p>
+            {user.others.languages.map((language: any, i: number) => (
+                <div key={i}>
+                    <p className="mt-2 mb-2"> {language.language_name}: {language.proficiency} </p>
+                </div>
+            ))}
+        </div>
+    );
+
+    const certificateCard = (user: any) => (
+        <div className="flex flex-col p-4 mb-4 border-solid border-l-neutral border-l-3 bg-secondary">
+            <p className="text-lg font-semibold mb-2"> 证书 </p>
+            {user.others.certificate.map((cert: any, i: number) => (
+                <div key={i}>
+                    <p className="text-base font-semibold">{cert.cert_name}</p>
+                    <p className="text-sm"> {cert.issuing_authority} </p>
+                    <p className="text-sm"> 颁发日期: {cert.issue_date}</p>
+                    <p className="text-sm"> 证书编号: {cert.cert_number} </p>
+                </div>
+            ))}
+        </div>
+    );
+
+    const awardCard = (user: any) => (
+        <div className="flex flex-col p-4 mb-4 border-solid border-l-neutral border-l-3 bg-secondary">
+            <p className="text-lg font-semibold mb-2"> 奖项 </p>
+            {user.others.awards.map((award: any, i: number) => (
+                <div key={i}>
+                    <p className="text-base font-semibold">{award.award_name}</p>
+                    <p className="text-sm"> {award.awarding_organization} </p>
+                    <p className="text-sm"> 获奖日期: {award.award_date}</p>
+                    <p className="text-sm"> 奖项等级: {award.award_level} </p>
+                    <p className="text-sm"> 奖项说明: {award.description} </p>
+                </div>
+            ))}
+        </div>
+    );
+
+    const projectCard = (project: any) => (
+        <div className="flex flex-col p-4 mb-4 border-solid border-l-neutral border-l-3 bg-secondary ">
+            <div className="flex w-full justify-between">
+                <p className="text-lg font-semibold pb-4">{project.project_name}</p>
+                <p className="text-sm">{project.start_time} - {project.end_time}</p>
+            </div>
+            <div className="flex w-full justify-between pr-8">
+                <p className="text-sm">项目职能: {project.project_role}</p>
+                <p className="text-sm">公司规模: {project.team_size}</p>
+            </div>
+            <p className="w-full p-4 bg-accent mt-4 text-sm"> {project.description}</p>
+            <ul className='list-disc space-y-1 mt-2'>
+                {project.technologies.map((skill: any, i: number) => (
+                    <div key={i} className="tooltip tooltip-top" data-tip={skill}>
+                        <div className="badge badge-ghost whitespace-nowrap text-ellipsis overflow-hidden m-1 max-w-[10rem]">
+                            <span className="inline-block min-w-0 truncate"> {skill} </span>
+                        </div>
+                    </div>
+                ))}
+            </ul>
+        </div>
+    );
+
     const userCards = <div className="flex flex-col bg-secondary">
         {filteredUsers.map((user: any) => (
-            <div key={user._id} className="flex flex-col bg-secondary m-4">
+            <div key={user._id.$oid} className="flex flex-col bg-secondary m-4">
                 <div className="w-full max-w-4xl bg-gradient-to-r from-indigo-400 to-purple-500 rounded-tl-xl rounded-tr-xl rounded-none p-6 flex flex-col md:flex-row text-primary-content">
                     <div className="flex items-start space-x-4 w-full">
                         <img
@@ -241,6 +384,27 @@ function Database() {
                         )}
                     </div>
                 </div>
+
+                {user.project_experience.length > 0 && 
+                <div className="flex flex-col">
+                    <div className="card flex flex-col w-full bg-accent p-4 rounded-bl-xl rounded-br-xl rounded-none mb-0">
+                        <h2 className="text-xl text-info font-bold mb-3 pb-3 border-gray-400 border-b-2"> 项目 </h2>
+                        {user.project_experience.map((project: any, pindex: number) => (
+                            <div key={pindex}> {projectCard(project)} </div>
+                        ))}
+                    </div>
+                </div>}
+                    
+                <div className="flex flex-col">
+                    <div className="card flex flex-col w-full bg-accent p-4 rounded-bl-xl rounded-br-xl rounded-none mb-0">
+                        <h2 className="text-xl text-info font-bold mb-3 pb-3 border-gray-400 border-b-2"> 其它 </h2>
+                        {skillsCard(user)}
+                        {user.others.languages.length > 0 && languageCard(user)}
+                        {user.others.certificate.length > 0 && certificateCard(user)}
+                        {user.others.awards.length > 0 && awardCard(user)}
+                    </div>
+                </div>
+
             </div>
         ))}
     </div>
@@ -321,6 +485,75 @@ function Database() {
                                 <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-3.5 text-gray-400" />
                             </div>
                         </div>
+
+                        <div className="form-control m-3">
+                            <label className="label">
+                                <span className="label-text">国家与地区</span>
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    name="country"
+                                    placeholder="搜尋国家或地区..."
+                                    className="input input-bordered w-full pl-8"
+                                    value={filters.country}
+                                    onChange={handleFilterChange}
+                                />
+                                <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-3.5 text-gray-400" />
+                            </div>
+                        </div>
+
+                        <div className="form-control m-3">
+                            <label className="label">
+                                <span className="label-text">城市</span>
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    name="city"
+                                    placeholder="搜尋城市..."
+                                    className="input input-bordered w-full pl-8"
+                                    value={filters.city}
+                                    onChange={handleFilterChange}
+                                />
+                                <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-3.5 text-gray-400" />
+                            </div>
+                        </div>
+
+                        <div className="form-control m-3">
+                            <label className="label">
+                                <span className="label-text">语言</span>
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    name="language"
+                                    placeholder="搜尋语言..."
+                                    className="input input-bordered w-full pl-8"
+                                    value={filters.language}
+                                    onChange={handleFilterChange}
+                                />
+                                <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-3.5 text-gray-400" />
+                            </div>
+                        </div>
+
+                        <div className="form-control m-3">
+                            <label className="label">
+                                <span className="label-text">期望薪资</span>
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    name="salary"
+                                    placeholder="搜尋薪资範圍..."
+                                    className="input input-bordered w-full pl-8"
+                                    value={filters.salary}
+                                    onChange={handleFilterChange}
+                                />
+                                <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-3.5 text-gray-400" />
+                            </div>
+                        </div>
+                        
                     </div>
                 )}
 
